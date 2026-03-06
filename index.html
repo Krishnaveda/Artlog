@@ -1,10 +1,7 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Arthood Team & Work</title>
 
@@ -16,8 +13,8 @@
 <style>
 
 body{
-font-family: Arial, sans-serif;
-background:#f5f5f5;
+font-family:Arial;
+background:#f4f6f8;
 margin:0;
 padding:0;
 text-align:center;
@@ -25,31 +22,31 @@ text-align:center;
 
 .header{
 background:#0f766e;
-color:white;
 padding:20px;
+color:white;
 }
 
 .logo{
-width:140px;
+width:120px;
 margin-bottom:10px;
 }
 
 .container{
-max-width:420px;
-margin:auto;
 padding:20px;
+max-width:400px;
+margin:auto;
 }
 
 .card{
 background:white;
 padding:20px;
-margin-bottom:20px;
 border-radius:12px;
-box-shadow:0 2px 8px rgba(0,0,0,0.1);
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
+margin-bottom:20px;
 }
 
 input{
-width:90%;
+width:100%;
 padding:12px;
 margin:10px 0;
 border-radius:8px;
@@ -58,49 +55,50 @@ font-size:16px;
 }
 
 button{
-width:90%;
+width:100%;
 padding:14px;
-margin:10px 0;
 border:none;
 border-radius:10px;
-font-size:18px;
-cursor:pointer;
+font-size:16px;
+font-weight:bold;
+margin-top:10px;
 }
 
-.checkin{
-background:#16a34a;
-color:white;
-}
-
-.checkout{
-background:#dc2626;
-color:white;
-}
-
-.otp{
+.otpBtn{
 background:#0f766e;
 color:white;
 }
 
-.adminbtn{
-background:#333;
+.verifyBtn{
+background:#0891b2;
 color:white;
 }
 
-.table-container{
+.checkIn{
+background:#16a34a;
+color:white;
+font-size:18px;
+}
+
+.checkOut{
+background:#dc2626;
+color:white;
+font-size:18px;
+}
+
+.adminTable{
 overflow-x:auto;
-width:100%;
 }
 
 table{
-min-width:500px;
+width:100%;
 border-collapse:collapse;
+font-size:14px;
 }
 
 th,td{
-padding:10px;
-border:1px solid #ddd;
-font-size:14px;
+padding:8px;
+border-bottom:1px solid #ddd;
 }
 
 </style>
@@ -113,57 +111,52 @@ font-size:14px;
 
 <img src="logo.png" class="logo">
 
-<h2>Arthood Team & Work</h2>
+<h2>Team & Work</h2>
 
 </div>
+
 
 <div class="container">
 
 <div class="card">
 
-<h3>Staff Login</h3>
+<input type="text" id="phone" placeholder="+919008612401">
 
-<input id="phone" placeholder="+91 phone number">
+<button class="otpBtn" onclick="sendOTP()">Send OTP</button>
 
-<button class="otp" onclick="sendOTP()">Send OTP</button>
+<input type="text" id="otp" placeholder="Enter OTP">
 
-<input id="otp" placeholder="Enter OTP">
-
-<button class="otp" onclick="verifyOTP()">Verify OTP</button>
+<button class="verifyBtn" onclick="verifyOTP()">Verify OTP</button>
 
 </div>
 
-<div id="staffSection" class="card" style="display:none;">
 
-<h3>Attendance</h3>
+<div id="staffSection" style="display:none;" class="card">
 
-<button id="checkInBtn" class="checkin" onclick="checkIn()">Check In</button>
+<button id="checkInBtn" class="checkIn" onclick="checkIn()">Check In</button>
 
-<button id="checkOutBtn" class="checkout" onclick="checkOut()">Check Out</button>
+<button id="checkOutBtn" class="checkOut" onclick="checkOut()">Check Out</button>
 
 </div>
 
-<div id="adminSection" class="card" style="display:none;">
+
+<div id="adminSection" style="display:none;" class="card">
 
 <h3>Admin Dashboard</h3>
 
-<button class="adminbtn" onclick="loadAttendance()">Refresh</button>
+<button onclick="loadAttendance()">Refresh</button>
 
-<h4>Attendance Log</h4>
-
-<div class="table-container">
+<div class="adminTable">
 
 <table id="attendanceTable">
 
 <thead>
-
 <tr>
 <th>Phone</th>
-<th>Check In</th>
-<th>Check Out</th>
+<th>In</th>
+<th>Out</th>
 <th>Hours</th>
 </tr>
-
 </thead>
 
 <tbody></tbody>
@@ -172,20 +165,19 @@ font-size:14px;
 
 </div>
 
-<h4>Monthly Salary</h4>
 
-<div class="table-container">
+<h3>Monthly Salary</h3>
+
+<div class="adminTable">
 
 <table id="salaryTable">
 
 <thead>
-
 <tr>
 <th>Phone</th>
-<th>Total Hours</th>
+<th>Hours</th>
 <th>Salary</th>
 </tr>
-
 </thead>
 
 <tbody></tbody>
@@ -198,54 +190,58 @@ font-size:14px;
 
 </div>
 
+
 <script>
 
-const { createClient } = supabase
+const { createClient } = supabase;
 
-const supabaseUrl = "https://lnkzzuvobybtaptxnpqn.supabase.co"
-const supabaseKey = "YOUR_ANON_KEY"
+const supabaseUrl="https://lnkzzuvobybtaptxnpqn.supabase.co";
+const supabaseKey="YOUR_SUPABASE_KEY";
 
-const ADMIN_PHONE="+919008612401"
+const ADMIN_PHONE="+919008612401";
 
-const client=createClient(supabaseUrl,supabaseKey)
+const client=createClient(supabaseUrl,supabaseKey);
+
 
 window.onload=async function(){
 
-const {data}=await client.auth.getSession()
+const {data}=await client.auth.getSession();
 
 if(data.session){
 
-document.getElementById("staffSection").style.display="block"
+document.getElementById("staffSection").style.display="block";
 
 if(data.session.user.phone===ADMIN_PHONE){
 
-document.getElementById("adminSection").style.display="block"
+document.getElementById("adminSection").style.display="block";
 
-loadAttendance()
-
-}
-
-updateAttendanceStatus()
+loadAttendance();
 
 }
 
+updateAttendanceStatus();
+
 }
+
+}
+
 
 async function sendOTP(){
 
-const phone=document.getElementById("phone").value
+const phone=document.getElementById("phone").value;
 
-const {error}=await client.auth.signInWithOtp({phone})
+const {error}=await client.auth.signInWithOtp({phone});
 
-if(error)alert(error.message)
-else alert("OTP Sent")
+if(error)alert(error.message);
+else alert("OTP Sent");
 
 }
 
+
 async function verifyOTP(){
 
-const phone=document.getElementById("phone").value
-const otp=document.getElementById("otp").value
+const phone=document.getElementById("phone").value;
+const otp=document.getElementById("otp").value;
 
 const {error}=await client.auth.verifyOtp({
 
@@ -253,254 +249,240 @@ phone,
 token:otp,
 type:"sms"
 
-})
+});
 
 if(error){
 
-alert("Verification Failed")
-
-return
+alert("Verification Failed");
+return;
 
 }
 
-alert("Login Successful")
+alert("Login Successful");
 
-document.getElementById("staffSection").style.display="block"
+document.getElementById("staffSection").style.display="block";
 
 if(phone===ADMIN_PHONE){
 
-document.getElementById("adminSection").style.display="block"
+document.getElementById("adminSection").style.display="block";
 
-loadAttendance()
+loadAttendance();
+
+}
+
+updateAttendanceStatus();
 
 }
 
-updateAttendanceStatus()
-
-}
 
 async function getCurrentStaff(){
 
-const {data:userData}=await client.auth.getUser()
+const {data:userData}=await client.auth.getUser();
 
-if(!userData.user)return null
+if(!userData.user)return null;
 
 const {data:staff}=await client
-
 .from("staff")
 .select("id,store_id")
 .eq("auth_user_id",userData.user.id)
-.maybeSingle()
+.maybeSingle();
 
-return staff
+return staff;
 
 }
 
+
 async function updateAttendanceStatus(){
 
-const staff=await getCurrentStaff()
-
-if(!staff)return
+const staff=await getCurrentStaff();
+if(!staff)return;
 
 const {data}=await client
-
 .from("attendance")
 .select("id")
 .eq("staff_id",staff.id)
 .is("check_out",null)
-.maybeSingle()
+.maybeSingle();
 
-const checkInBtn=document.getElementById("checkInBtn")
-const checkOutBtn=document.getElementById("checkOutBtn")
+const checkInBtn=document.getElementById("checkInBtn");
+const checkOutBtn=document.getElementById("checkOutBtn");
 
 if(data){
 
-checkInBtn.disabled=true
-checkOutBtn.disabled=false
+checkInBtn.disabled=true;
+checkOutBtn.disabled=false;
 
 }else{
 
-checkInBtn.disabled=false
-checkOutBtn.disabled=true
+checkInBtn.disabled=false;
+checkOutBtn.disabled=true;
 
 }
 
 }
+
 
 async function checkIn(){
 
-const staff=await getCurrentStaff()
+const staff=await getCurrentStaff();
 
-if(!staff)return alert("Staff not found")
-
-navigator.geolocation.getCurrentPosition(async pos=>{
-
-const lat=pos.coords.latitude
-const lng=pos.coords.longitude
+if(!staff)return alert("Staff not found");
 
 const {error}=await client
-
 .from("attendance")
 .insert([{
 
 staff_id:staff.id,
 store_id:staff.store_id,
-check_in:new Date().toISOString(),
-latitude:lat,
-longitude:lng
+check_in:new Date().toISOString()
 
-}])
+}]);
 
-if(error)alert(error.message)
+if(error)alert(error.message);
+
 else{
 
-alert("Check In Successful")
+alert("Checked In");
 
-updateAttendanceStatus()
+updateAttendanceStatus();
+
+}
 
 }
 
-})
-
-}
 
 async function checkOut(){
 
-const staff=await getCurrentStaff()
+const staff=await getCurrentStaff();
 
-if(!staff)return alert("Staff not found")
+if(!staff)return alert("Staff not found");
 
 const {data:attendance}=await client
-
 .from("attendance")
 .select("id,check_in")
 .eq("staff_id",staff.id)
 .is("check_out",null)
-.maybeSingle()
+.maybeSingle();
 
-if(!attendance)return alert("No active checkin")
+if(!attendance)return alert("No check-in");
 
-const now=new Date()
+const now=new Date();
 
-const diff=(now-new Date(attendance.check_in))/(1000*60*60)
+const diffHours=(now-new Date(attendance.check_in))/(1000*60*60);
 
 const {error}=await client
-
 .from("attendance")
 .update({
 
 check_out:now.toISOString(),
-total_hours:diff.toFixed(2)
+total_hours:diffHours.toFixed(2)
 
 })
-.eq("id",attendance.id)
+.eq("id",attendance.id);
 
-if(error)alert(error.message)
+if(error)alert(error.message);
 
 else{
 
-alert("Check Out Successful")
+alert("Checked Out");
 
-updateAttendanceStatus()
+updateAttendanceStatus();
+
+}
 
 }
 
-}
 
 async function loadAttendance(){
 
 const {data}=await client
-
 .from("attendance")
 .select(`
-
 check_in,
 check_out,
 total_hours,
 staff:staff_id(phone)
-
 `)
-.order("check_in",{ascending:false})
+.order("check_in",{ascending:false});
 
-const tbody=document.querySelector("#attendanceTable tbody")
+const tbody=document.querySelector("#attendanceTable tbody");
 
-tbody.innerHTML=""
+tbody.innerHTML="";
 
-data.forEach(r=>{
+data.forEach(row=>{
 
-const tr=document.createElement("tr")
+const tr=document.createElement("tr");
 
 tr.innerHTML=`
 
-<td>${r.staff?.phone||""}</td>
-<td>${r.check_in||""}</td>
-<td>${r.check_out||""}</td>
-<td>${r.total_hours||""}</td>
+<td>${row.staff?.phone||""}</td>
+<td>${row.check_in||""}</td>
+<td>${row.check_out||""}</td>
+<td>${row.total_hours||""}</td>
 
-`
+`;
 
-tbody.appendChild(tr)
+tbody.appendChild(tr);
 
-})
+});
 
-loadMonthlySalary()
+loadMonthlySalary();
 
 }
 
+
 async function loadMonthlySalary(){
 
-const start=new Date()
-
-start.setDate(1)
+const start=new Date();
+start.setDate(1);
+start.setHours(0,0,0,0);
 
 const {data}=await client
-
 .from("attendance")
 .select(`
-
 total_hours,
 staff:staff_id(phone)
-
 `)
 .gte("check_in",start.toISOString())
-.not("total_hours","is",null)
+.not("total_hours","is",null);
 
-const summary={}
+const summary={};
 
-data.forEach(r=>{
+data.forEach(row=>{
 
-const phone=r.staff?.phone
-const hours=parseFloat(r.total_hours)
+const phone=row.staff?.phone;
 
-if(!summary[phone])summary[phone]=0
+const hours=parseFloat(row.total_hours||0);
 
-summary[phone]+=hours
+if(!summary[phone])summary[phone]=0;
 
-})
+summary[phone]+=hours;
 
-const tbody=document.querySelector("#salaryTable tbody")
+});
 
-tbody.innerHTML=""
+const tbody=document.querySelector("#salaryTable tbody");
+
+tbody.innerHTML="";
 
 Object.keys(summary).forEach(phone=>{
 
-const hrs=summary[phone]
+const hours=summary[phone];
 
-const salary=hrs*56
+const salary=hours*56;
 
-const tr=document.createElement("tr")
+const tr=document.createElement("tr");
 
 tr.innerHTML=`
 
 <td>${phone}</td>
-<td>${hrs.toFixed(2)}</td>
+<td>${hours.toFixed(2)}</td>
 <td>₹${salary.toFixed(2)}</td>
 
-`
+`;
 
-tbody.appendChild(tr)
+tbody.appendChild(tr);
 
-})
+});
 
 }
 
@@ -508,9 +490,9 @@ tbody.appendChild(tr)
 
 <script>
 
-if("serviceWorker" in navigator){
+if('serviceWorker' in navigator){
 
-navigator.serviceWorker.register("/service-worker.js")
+navigator.serviceWorker.register('/service-worker.js');
 
 }
 
