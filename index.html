@@ -1,295 +1,479 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>ArtLog Staff System</title>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<title>Arthood Team & Work</title>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6fb;
+margin:0;
+}
+
+.container{
+max-width:420px;
+margin:auto;
+padding:20px;
+text-align:center;
+}
+
+.logo{
+width:120px;
+margin-top:20px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:12px;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
+margin-top:20px;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:8px;
+border:1px solid #ccc;
+font-size:16px;
+}
+
+button{
+width:100%;
+padding:14px;
+margin-top:12px;
+border:none;
+border-radius:8px;
+font-size:16px;
+cursor:pointer;
+}
+
+.primary{
+background:#0f766e;
+color:white;
+}
+
+.checkin{
+background:#10b981;
+color:white;
+font-size:18px;
+}
+
+.checkout{
+background:#ef4444;
+color:white;
+font-size:18px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+font-size:14px;
+}
+
+th,td{
+padding:8px;
+border:1px solid #ddd;
+}
+
+</style>
 </head>
+
 
 <body>
 
-<h2>ArtLog Staff Login</h2>
+<div class="container">
+
+<img src="artlog-logo.png" class="logo">
+
+<h2>Arthood</h2>
+<p style="margin-top:-10px;color:#666;">Team & Work</p>
+
+
+<div class="card">
+
+<h3>Login</h3>
 
 <input type="text" id="phone" placeholder="+919008612401">
-<button onclick="sendOTP()">Send OTP</button>
+
+<button class="primary" onclick="sendOTP()">Send OTP</button>
+
+<input type="text" id="otp" placeholder="Enter OTP">
+
+<button class="primary" onclick="verifyOTP()">Verify OTP</button>
+
+</div>
+
+
+<div id="staffSection" class="card" style="display:none;">
+
+<h3>Attendance</h3>
+
+<button id="checkInBtn" class="checkin" onclick="checkIn()">
+Check In
+</button>
+
+<button id="checkOutBtn" class="checkout" onclick="checkOut()">
+Check Out
+</button>
+
+</div>
+
+
+<div id="adminSection" class="card" style="display:none;">
+
+<h3>Admin Dashboard</h3>
+
+<button class="primary" onclick="loadAttendance()">
+Refresh Attendance
+</button>
 
 <br><br>
 
-<input type="text" id="otp" placeholder="Enter OTP">
-<button onclick="verifyOTP()">Verify OTP</button>
+<table id="attendanceTable">
+<thead>
+<tr>
+<th>Phone</th>
+<th>Check In</th>
+<th>Check Out</th>
+<th>Hours</th>
+</tr>
+</thead>
 
-<br><br><br>
+<tbody></tbody>
 
-<div id="staffSection" style="display:none;">
-  <button id="checkInBtn" onclick="checkIn()">Check In</button>
-  <button id="checkOutBtn" onclick="checkOut()">Check Out</button>
-</div>
+</table>
 
-<hr>
+<br><br>
 
-<div id="adminSection" style="display:none;">
-  <h3>Admin Dashboard</h3>
+<h3>Monthly Salary</h3>
 
-  <button onclick="loadAttendance()">Refresh Attendance</button>
+<table id="salaryTable">
 
-  <br><br>
+<thead>
+<tr>
+<th>Phone</th>
+<th>Total Hours</th>
+<th>Salary ₹</th>
+</tr>
+</thead>
 
-  <table border="1" id="attendanceTable">
-    <thead>
-      <tr>
-        <th>Phone</th>
-        <th>Check In</th>
-        <th>Check Out</th>
-        <th>Total Hours</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+<tbody></tbody>
 
-  <br><br>
-
-  <h3>Monthly Salary Summary</h3>
-
-  <table border="1" id="salaryTable">
-    <thead>
-      <tr>
-        <th>Phone</th>
-        <th>Total Hours (This Month)</th>
-        <th>Salary (₹56/hr)</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+</table>
 
 </div>
+
+</div>
+
 
 <script>
 
 const { createClient } = supabase;
 
 const supabaseUrl = "https://lnkzzuvobybtaptxnpqn.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxua3p6dXZvYnlidGFwdHhucHFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzU5MjQsImV4cCI6MjA4Nzg1MTkyNH0.ZPZKbhTNvKdTnuwcoI4BqjB2j4dArtFIwJ4E-cfOAno";
+const supabaseKey = "YOUR_PUBLIC_ANON_KEY";
+
 const ADMIN_PHONE = "+919008612401";
 
 const client = createClient(supabaseUrl, supabaseKey);
 
-// AUTO LOGIN ON REFRESH
-window.onload = async function () {
-  const { data } = await client.auth.getSession();
 
-  if (data.session) {
-    document.getElementById("staffSection").style.display = "block";
 
-    if (data.session.user.phone === ADMIN_PHONE) {
-      document.getElementById("adminSection").style.display = "block";
-      loadAttendance();
-    }
+window.onload = async function(){
 
-    updateAttendanceStatus();
-  }
+const { data } = await client.auth.getSession();
+
+if(data.session){
+
+document.getElementById("staffSection").style.display="block";
+
+if(data.session.user.phone===ADMIN_PHONE){
+
+document.getElementById("adminSection").style.display="block";
+
+loadAttendance();
+
+}
+
+updateAttendanceStatus();
+
+}
+
 };
 
-async function sendOTP() {
-  const phone = document.getElementById("phone").value;
 
-  const { error } = await client.auth.signInWithOtp({ phone });
 
-  if (error) alert("Error: " + error.message);
-  else alert("OTP Sent");
+async function sendOTP(){
+
+const phone=document.getElementById("phone").value;
+
+const { error } = await client.auth.signInWithOtp({ phone });
+
+if(error) alert(error.message);
+else alert("OTP Sent");
+
 }
 
-async function verifyOTP() {
-  const phone = document.getElementById("phone").value;
-  const otp = document.getElementById("otp").value;
 
-  const { data, error } = await client.auth.verifyOtp({
-    phone,
-    token: otp,
-    type: "sms"
-  });
 
-  if (error) {
-    alert("Verification Failed: " + error.message);
-    return;
-  }
+async function verifyOTP(){
 
-  alert("Login Successful");
+const phone=document.getElementById("phone").value;
 
-  document.getElementById("staffSection").style.display = "block";
+const otp=document.getElementById("otp").value;
 
-  if (phone === ADMIN_PHONE) {
-    document.getElementById("adminSection").style.display = "block";
-    loadAttendance();
-  }
+const { error } = await client.auth.verifyOtp({
+phone,
+token:otp,
+type:"sms"
+});
 
-  updateAttendanceStatus();
+if(error){
+alert("Verification Failed");
+return;
 }
 
-async function getCurrentStaff() {
-  const { data: userData } = await client.auth.getUser();
-  if (!userData.user) return null;
+alert("Login Successful");
 
-  const { data: staff } = await client
-    .from("staff")
-    .select("id, store_id")
-    .eq("auth_user_id", userData.user.id)
-    .maybeSingle();
+document.getElementById("staffSection").style.display="block";
 
-  return staff;
+if(phone===ADMIN_PHONE){
+
+document.getElementById("adminSection").style.display="block";
+
+loadAttendance();
+
 }
 
-async function updateAttendanceStatus() {
-  const staff = await getCurrentStaff();
-  if (!staff) return;
+updateAttendanceStatus();
 
-  const { data } = await client
-    .from("attendance")
-    .select("id")
-    .eq("staff_id", staff.id)
-    .is("check_out", null)
-    .maybeSingle();
-
-  const checkInBtn = document.getElementById("checkInBtn");
-  const checkOutBtn = document.getElementById("checkOutBtn");
-
-  if (data) {
-    checkInBtn.disabled = true;
-    checkOutBtn.disabled = false;
-  } else {
-    checkInBtn.disabled = false;
-    checkOutBtn.disabled = true;
-  }
 }
 
-async function checkIn() {
-  const staff = await getCurrentStaff();
-  if (!staff) return alert("Staff not found");
 
-  const { error } = await client
-    .from("attendance")
-    .insert([{
-      staff_id: staff.id,
-      store_id: staff.store_id,
-      check_in: new Date().toISOString()
-    }]);
 
-  if (error) alert(error.message);
-  else {
-    alert("Check-In Successful");
-    updateAttendanceStatus();
-  }
+async function getCurrentStaff(){
+
+const { data:userData } = await client.auth.getUser();
+
+if(!userData.user) return null;
+
+const { data:staff } = await client
+.from("staff")
+.select("id,store_id")
+.eq("auth_user_id",userData.user.id)
+.maybeSingle();
+
+return staff;
+
 }
 
-async function checkOut() {
-  const staff = await getCurrentStaff();
-  if (!staff) return alert("Staff not found");
 
-  const { data: attendance } = await client
-    .from("attendance")
-    .select("id, check_in")
-    .eq("staff_id", staff.id)
-    .is("check_out", null)
-    .maybeSingle();
 
-  if (!attendance) return alert("No active check-in");
+async function updateAttendanceStatus(){
 
-  const now = new Date();
-  const diffHours = (now - new Date(attendance.check_in)) / (1000*60*60);
+const staff=await getCurrentStaff();
+if(!staff) return;
 
-  const { error } = await client
-    .from("attendance")
-    .update({
-      check_out: now.toISOString(),
-      total_hours: diffHours.toFixed(2)
-    })
-    .eq("id", attendance.id);
+const { data } = await client
+.from("attendance")
+.select("id")
+.eq("staff_id",staff.id)
+.is("check_out",null)
+.maybeSingle();
 
-  if (error) alert(error.message);
-  else {
-    alert("Check-Out Successful");
-    updateAttendanceStatus();
-  }
+const checkInBtn=document.getElementById("checkInBtn");
+const checkOutBtn=document.getElementById("checkOutBtn");
+
+if(data){
+checkInBtn.disabled=true;
+checkOutBtn.disabled=false;
+}
+else{
+checkInBtn.disabled=false;
+checkOutBtn.disabled=true;
 }
 
-async function loadAttendance() {
-  const { data } = await client
-    .from("attendance")
-    .select(`
-      check_in,
-      check_out,
-      total_hours,
-      staff:staff_id ( phone )
-    `)
-    .order("check_in", { ascending: false });
-
-  const tbody = document.querySelector("#attendanceTable tbody");
-  tbody.innerHTML = "";
-
-  data.forEach(row => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${row.staff?.phone || ""}</td>
-      <td>${row.check_in || ""}</td>
-      <td>${row.check_out || ""}</td>
-      <td>${row.total_hours || ""}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  loadMonthlySalary();
 }
 
-async function loadMonthlySalary() {
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0,0,0,0);
 
-  const { data } = await client
-    .from("attendance")
-    .select(`
-      total_hours,
-      staff:staff_id ( phone )
-    `)
-    .gte("check_in", startOfMonth.toISOString())
-    .not("total_hours", "is", null);
 
-  const summary = {};
+async function checkIn(){
 
-  data.forEach(row => {
-    const phone = row.staff?.phone;
-    const hours = parseFloat(row.total_hours || 0);
+const staff=await getCurrentStaff();
 
-    if (!summary[phone]) summary[phone] = 0;
-    summary[phone] += hours;
-  });
+if(!staff) return alert("Staff not found");
 
-  const tbody = document.querySelector("#salaryTable tbody");
-  tbody.innerHTML = "";
+const { error } = await client
+.from("attendance")
+.insert([{
+staff_id:staff.id,
+store_id:staff.store_id,
+check_in:new Date().toISOString()
+}]);
 
-  Object.keys(summary).forEach(phone => {
-    const totalHours = summary[phone];
-    const salary = totalHours * 56;
+if(error) alert(error.message);
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${phone}</td>
-      <td>${totalHours.toFixed(2)}</td>
-      <td>₹${salary.toFixed(2)}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+else{
+alert("Check-In Successful");
+updateAttendanceStatus();
+}
+
+}
+
+
+
+async function checkOut(){
+
+const staff=await getCurrentStaff();
+
+if(!staff) return;
+
+const { data:attendance } = await client
+.from("attendance")
+.select("id,check_in")
+.eq("staff_id",staff.id)
+.is("check_out",null)
+.maybeSingle();
+
+if(!attendance) return alert("No active check-in");
+
+const now=new Date();
+
+const diffHours=(now-new Date(attendance.check_in))/(1000*60*60);
+
+const { error } = await client
+.from("attendance")
+.update({
+check_out:now.toISOString(),
+total_hours:diffHours.toFixed(2)
+})
+.eq("id",attendance.id);
+
+if(error) alert(error.message);
+
+else{
+
+alert("Check-Out Successful");
+
+updateAttendanceStatus();
+
+}
+
+}
+
+
+
+async function loadAttendance(){
+
+const { data } = await client
+.from("attendance")
+.select(`
+check_in,
+check_out,
+total_hours,
+staff:staff_id ( phone )
+`)
+.order("check_in",{ascending:false});
+
+const tbody=document.querySelector("#attendanceTable tbody");
+
+tbody.innerHTML="";
+
+data.forEach(row=>{
+
+const tr=document.createElement("tr");
+
+tr.innerHTML=`
+<td>${row.staff?.phone||""}</td>
+<td>${row.check_in||""}</td>
+<td>${row.check_out||""}</td>
+<td>${row.total_hours||""}</td>
+`;
+
+tbody.appendChild(tr);
+
+});
+
+loadMonthlySalary();
+
+}
+
+
+
+async function loadMonthlySalary(){
+
+const startOfMonth=new Date();
+startOfMonth.setDate(1);
+startOfMonth.setHours(0,0,0,0);
+
+const { data } = await client
+.from("attendance")
+.select(`
+total_hours,
+staff:staff_id ( phone )
+`)
+.gte("check_in",startOfMonth.toISOString())
+.not("total_hours","is",null);
+
+const summary={};
+
+data.forEach(row=>{
+
+const phone=row.staff?.phone;
+
+const hours=parseFloat(row.total_hours||0);
+
+if(!summary[phone]) summary[phone]=0;
+
+summary[phone]+=hours;
+
+});
+
+const tbody=document.querySelector("#salaryTable tbody");
+
+tbody.innerHTML="";
+
+Object.keys(summary).forEach(phone=>{
+
+const totalHours=summary[phone];
+
+const salary=totalHours*56;
+
+const tr=document.createElement("tr");
+
+tr.innerHTML=`
+<td>${phone}</td>
+<td>${totalHours.toFixed(2)}</td>
+<td>₹${salary.toFixed(2)}</td>
+`;
+
+tbody.appendChild(tr);
+
+});
+
 }
 
 </script>
+
+
 <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js')
-  .then(function() {
-    console.log("Service Worker Registered");
-  });
+
+if('serviceWorker' in navigator){
+
+navigator.serviceWorker.register('/service-worker.js')
+.then(()=>console.log("Service Worker Registered"));
+
 }
+
 </script>
+
 </body>
-
 </html>
-
